@@ -50,10 +50,11 @@ void displayString(const char* s) {
 void loop() {
   sensors_event_t humidity, temp;
   aht.getEvent(&humidity, &temp);
-  const char* s = "67";
-  displayString(s);
   float temperature = temp.temperature;
   std::string msg = std::to_string(temperature);
+  Serial.print(msg.c_str());
+  Serial.print("      ");
+  Serial.println(temperature);
   client.publish(pub_topic, msg);
   if (temperature > 28.5){
     digitalWrite(A, HIGH);
@@ -63,20 +64,20 @@ void loop() {
   }
   delay(1000);
 }
- 
+
 void setup_sensor() {
   while (!aht.begin()) {
     delay(500);
   }
 }
- 
+
 void setup_wifi() {
   WiFi.begin(ssid);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
   }
 }
- 
+
 void onMqttConnect(esp_mqtt_client_handle_t client_handle) {
   if (client.isMyTurn(client_handle)) {
     client.subscribe(sub_topic, [](const std::string &payload) {});
