@@ -2,6 +2,14 @@
 #include <Adafruit_AHTX0.h>
 #include <ESP32MQTTClient.h>
 #include "esp_idf_version.h"
+#include <MaxLedControl.h>
+#include <SPI.h>
+
+#define HARDWARE_TYPE MD_MAX72XX::FC16_HW
+#define DIN 23
+#define CLK 18
+#define CS  2
+#define NUM_MODULES 1
 
 const char *ssid = "GuestWLANPortal";
 const char *server = "mqtt://10.10.2.127:1883";
@@ -14,57 +22,58 @@ const char *client_id = "ESP32 Glasbox";
 Adafruit_AHTX0 aht;
 ESP32MQTTClient client;
 
+LedControl display = LedControl(DIN, CLK, CS, 1);
+ 
 void setup() {
   Serial.begin(115200);
-
+  display.begin(15);
+  display.clear();
   setup_sensor();
   setup_wifi();
-
   client.setURI(server);
   client.setMqttClientName(client_id);
   client.loopStart();
 }
 
+void displayString(const char* s) {
+  uint16_t len = (uint16_t)strlen(s);
+
+  for (uint16_t i = 0; i < len; i++) {
+    display.setChar(0, 8 - i - 1, s[i], false);
+  }
+  Serial.println(s);
+}
+
 void loop() {
   sensors_event_t humidity, temp;
   aht.getEvent(&humidity, &temp);
-
-  std::string msg = std::to_string(temp.temperature);
-  client.publish(pub_topic, msg);
-
+  const char* s = "67";
+  displayString(s);
+  float temperature = temp.temperature;
+  std::string msg = std::to_string(temperature);
+  client.publish(pub_topic, "67.67");
   delay(1000);
 }
-
+ 
 void setup_sensor() {
-  Serial.print("Initialising AHT10 / AHT20...");
-
   while (!aht.begin()) {
     delay(500);
-    Serial.print(".");
   }
-  Serial.println("done!");
 }
-
+ 
 void setup_wifi() {
-  Serial.print("Connecting to ");
-  Serial.print(ssid);
   WiFi.begin(ssid);
-
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
   }
-  Serial.println("done!");
 }
-
+ 
 void onMqttConnect(esp_mqtt_client_handle_t client_handle) {
   if (client.isMyTurn(client_handle)) {
-    client.subscribe(sub_topic, [](const std::string &payload) {
-      Serial.printf("%s: %s\n", sub_topic, payload.c_str());
-    });
+    client.subscribe(sub_topic, [](const std::string &payload) {});
   }
 }
-
+ 
 #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
 esp_err_t handleMQTT(esp_mqtt_event_handle_t event) {
   client.onEventCallback(event);
