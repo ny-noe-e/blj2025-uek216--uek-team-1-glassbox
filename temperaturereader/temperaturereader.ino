@@ -16,8 +16,8 @@
 const char *ssid = "GuestWLANPortal";
 const char *server = "mqtt://10.10.2.127:1883";
 
-const char *pub_topic = "zuerich/glasbox/data";
-const char *sub_topic = "zuerich/glasbox/data";
+const char *pub_topic = "zuerich/glasbox/RawTemperature";
+const char *sub_topic = "zuerich/glasbox/RawTemperature";
 
 const char *client_id = "ESP32 Glasbox";
 
@@ -50,8 +50,17 @@ void displayString(const char* s) {
 void loop() {
   sensors_event_t humidity, temp;
   aht.getEvent(&humidity, &temp);
+
+
   float temperature = temp.temperature;
   std::string msg = std::to_string(temperature);
+  
+
+  float hum = humidity.relative_humidity;
+  std::string teststring = std::to_string(hum);
+  client.publish("zuerich/glasbox/RawHumidity", teststring);
+
+
   Serial.print(msg.c_str());
   Serial.print("      ");
   Serial.println(temperature);
