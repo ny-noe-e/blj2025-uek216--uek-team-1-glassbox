@@ -1,0 +1,452 @@
+[
+    {
+        "id": "3c1a9d82e45b7067",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "bb7d03dfa64ae7dd",
+        "type": "mqtt out",
+        "z": "3c1a9d82e45b7067",
+        "name": "",
+        "topic": "Team_2/mqtt",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "b467710c2029931f",
+        "x": 770,
+        "y": 7760,
+        "wires": []
+    },
+    {
+        "id": "3839be830aa37a3c",
+        "type": "mqtt in",
+        "z": "3c1a9d82e45b7067",
+        "name": "",
+        "topic": "Team_67",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "b467710c2029931f",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 260,
+        "y": 7920,
+        "wires": [
+            [
+                "19e8cb9e755912c5"
+            ]
+        ]
+    },
+    {
+        "id": "19e8cb9e755912c5",
+        "type": "function",
+        "z": "3c1a9d82e45b7067",
+        "name": "function 1",
+        "func": "msg.payload = \"Hello World!\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 7760,
+        "wires": [
+            [
+                "bb7d03dfa64ae7dd"
+            ]
+        ]
+    },
+    {
+        "id": "c810c73175e1f853",
+        "type": "mqtt in",
+        "z": "3c1a9d82e45b7067",
+        "name": "",
+        "topic": "zuerich/glasbox/RawTemperature",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "b467710c2029931f",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 250,
+        "y": 280,
+        "wires": [
+            [
+                "6ddd8f591f965c7b"
+            ]
+        ]
+    },
+    {
+        "id": "6ddd8f591f965c7b",
+        "type": "function",
+        "z": "3c1a9d82e45b7067",
+        "name": "rounding",
+        "func": "let temp = Number(msg.payload);\n\ntemp = Math.round(temp * 100) / 100;\n\nmsg.payload = temp;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 280,
+        "wires": [
+            [
+                "cae98e30a6a7c8dc",
+                "9b478dcf0984f5d7",
+                "e25f8195b93ef359",
+                "switch_temp"
+            ]
+        ]
+    },
+    {
+        "id": "cae98e30a6a7c8dc",
+        "type": "mqtt out",
+        "z": "3c1a9d82e45b7067",
+        "name": "",
+        "topic": "zuerich/glasbox/Temperature",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "b467710c2029931f",
+        "x": 740,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "e25f8195b93ef359",
+        "type": "ui_gauge",
+        "z": "3c1a9d82e45b7067",
+        "name": "",
+        "group": "26d17fa8e805fb2f",
+        "order": 3,
+        "width": "6",
+        "height": "3",
+        "gtype": "gage",
+        "title": "Temperature in °Celsius",
+        "label": "°Celsius",
+        "format": "{{msg.payload}}",
+        "min": "15",
+        "max": "35",
+        "colors": [
+            "#2bff00",
+            "#ffc800",
+            "#ff0000"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 730,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "9b478dcf0984f5d7",
+        "type": "ui_template",
+        "z": "3c1a9d82e45b7067",
+        "group": "26d17fa8e805fb2f",
+        "name": "Temp Anzeige - farbig",
+        "order": 4,
+        "width": "6",
+        "height": "6",
+        "format": "<div id=\"tempbox\" style=\"text-align:center;\n            padding:20px;\n            border-radius:20px;\n            transition: background-color 0.5s ease, color 0.5s ease;\n            font-size:70px;\n            font-weight:bold;\">\n</div>\n\n<script>\n    (function(scope) {\n\n    scope.$watch('msg.payload', function(temp) {\n        let box = document.getElementById('tempbox');\n\n        // Fallback wenn kein Wert\n        if (temp === undefined || temp === null || temp === \"\") {\n            box.style.background = \"#eee\";\n            box.style.color = \"#000\";\n            box.innerHTML = \"—<br><div style='font-size:24px;'>no data</div>\";\n            return;\n        }\n\n        temp = Number(temp);\n\n        // -------------------------\n        // ZONE 1: < 20°C\n        // -------------------------\n        if (temp < 20) {\n            box.style.background = \"#81D4FA\";  // hellblau\n            box.style.color = \"#000\";\n            box.innerHTML = \"🥶<br><div style='font-size:24px;'>too cold!</div>\";\n        }\n\n        // -------------------------\n        // ZONE 2: 20–26°C\n        // -------------------------\n        else if (temp >= 20 && temp <= 26) {\n            box.style.background = \"#A5D6A7\";  // grün\n            box.style.color = \"#000\";\n            box.innerHTML = \"😊<br><div style='font-size:24px;'>great!</div>\";\n        }\n\n        // -------------------------\n        // ZONE 3: 26–28.5°C\n        // -------------------------\n        else if (temp > 26 && temp <= 28.5) {\n            box.style.background = \"#FFF59D\";  // gelb\n            box.style.color = \"#000\";\n            box.innerHTML = \"🤨<br><div style='font-size:24px;'>acceptable</div>\";\n        }\n\n        // -------------------------\n        // ZONE 4: > 28.5°C\n        // -------------------------\n        else if (temp > 28.5) {\n            box.style.background = \"#EF5350\";  // rot\n            box.style.color = \"#fff\";\n            box.innerHTML = \"🥵<br><div style='font-size:24px; color:white;'>please ventilate!</div>\";\n        }\n    });\n\n})(scope);\n</script>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 720,
+        "y": 280,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7a6109d2b0dc32eb",
+        "type": "ui_text",
+        "z": "3c1a9d82e45b7067",
+        "group": "26d17fa8e805fb2f",
+        "order": 2,
+        "width": "12",
+        "height": "1",
+        "name": "",
+        "label": "Glas Box temperature / humidity",
+        "format": "{{msg.payload}}",
+        "layout": "row-center",
+        "className": "",
+        "style": true,
+        "font": "Lucida Sans Typewriter,Lucida Console,Monaco,monospace",
+        "fontSize": "25",
+        "color": "#000000",
+        "x": 750,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "switch_temp",
+        "type": "switch",
+        "z": "3c1a9d82e45b7067",
+        "name": "Temperatur too high",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "gt",
+                "v": "28.5",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 720,
+        "y": 340,
+        "wires": [
+            [
+                "c9df0fd2b4fc5e43"
+            ]
+        ]
+    },
+    {
+        "id": "c9df0fd2b4fc5e43",
+        "type": "ui_toast",
+        "z": "3c1a9d82e45b7067",
+        "position": "top right",
+        "displayTime": "3",
+        "highlight": "",
+        "sendall": true,
+        "outputs": 0,
+        "ok": "OK",
+        "cancel": "",
+        "raw": false,
+        "className": "",
+        "topic": "too hot please ventilate",
+        "name": "Too hot please ventilate",
+        "x": 970,
+        "y": 340,
+        "wires": [],
+        "info": "Ventilating our rooms is important because it removes stale air, reduces indoor pollutants, and brings in fresh oxygen. This helps prevent mold, lowers humidity, improves concentration, and keeps the air healthier to breathe."
+    },
+    {
+        "id": "96cf86e183c9e6d2",
+        "type": "mqtt in",
+        "z": "3c1a9d82e45b7067",
+        "name": "",
+        "topic": "zuerich/glasbox/RawHumidity",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "b467710c2029931f",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 240,
+        "y": 680,
+        "wires": [
+            [
+                "d98a3022bf620ce7"
+            ]
+        ]
+    },
+    {
+        "id": "a4d20ebefdc374c7",
+        "type": "mqtt out",
+        "z": "3c1a9d82e45b7067",
+        "name": "",
+        "topic": "zuerich/glasbox/Humidity",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "b467710c2029931f",
+        "x": 650,
+        "y": 820,
+        "wires": []
+    },
+    {
+        "id": "d98a3022bf620ce7",
+        "type": "function",
+        "z": "3c1a9d82e45b7067",
+        "name": "rounding",
+        "func": "let temp = Number(msg.payload);\n\ntemp = Math.round(temp * 100) / 100;\n\nmsg.payload = temp;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 680,
+        "wires": [
+            [
+                "a4d20ebefdc374c7",
+                "0be3cccd8ea3bde1",
+                "ace011127fc9e044",
+                "0d01230b0d457fb6"
+            ]
+        ]
+    },
+    {
+        "id": "0be3cccd8ea3bde1",
+        "type": "ui_gauge",
+        "z": "3c1a9d82e45b7067",
+        "name": "",
+        "group": "26d17fa8e805fb2f",
+        "order": 3,
+        "width": "6",
+        "height": "3",
+        "gtype": "gage",
+        "title": "Humidity in %",
+        "label": "%",
+        "format": "{{msg.payload}}",
+        "min": "0",
+        "max": "100",
+        "colors": [
+            "#ff0000",
+            "#00ff40",
+            "#ff0000"
+        ],
+        "seg1": "35",
+        "seg2": "65",
+        "diff": false,
+        "className": "",
+        "x": 680,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "ace011127fc9e044",
+        "type": "ui_template",
+        "z": "3c1a9d82e45b7067",
+        "group": "26d17fa8e805fb2f",
+        "name": "Temp Anzeige - farbig",
+        "order": 4,
+        "width": "6",
+        "height": "6",
+        "format": "<div id=\"humiditybox\" style=\"text-align:center;\n            padding:20px;\n            border-radius:20px;\n            transition: background-color 0.5s ease, color 0.5s ease;\n            font-size:70px;\n            font-weight:bold;\">\n</div>\n\n<script>\n    (function(scope) {\n\n    scope.$watch('msg.payload', function(humidity) {\n        let box = document.getElementById('humiditybox');\n\n        // Fallback wenn kein Wert\n        if (humidity === undefined || humidity === null || humidity === \"\") {\n            box.style.background = \"#eee\";\n            box.style.color = \"#000\";\n            box.innerHTML = \"—<br><div style='font-size:24px;'>no data</div>\";\n            return;\n        }\n\n        humidity = Number(humidity);\n\n        // -------------------------\n        // ZONE 1: < 40%\n        // -------------------------\n        if (humidity < 40) {\n            box.style.background = \"#81D4FA\";  // hellblau\n            box.style.color = \"#000\";\n            box.innerHTML = \"😵‍💫<br><div style='font-size:24px;'>too dry!</div>\";\n        }\n\n        // -------------------------\n        // ZONE 2: 40–60%\n        // -------------------------\n        else if (humidity >= 40 && humidity <= 60) {\n            box.style.background = \"#A5D6A7\";  // grün\n            box.style.color = \"#000\";\n            box.innerHTML = \"😊<br><div style='font-size:24px;'>great!</div>\";\n        }\n\n        // -------------------------\n        // ZONE 3: 60–70%\n        // -------------------------\n        else if (humidity > 60 && humidity <= 70) {\n            box.style.background = \"#FFF59D\"; // gelb\n            box.style.color = \"#000\";\n            box.innerHTML = \"🤨<br><div style='font-size:24px;'>acceptable</div>\";\n        }\n\n        // -------------------------\n        // ZONE 4: > 70%\n        // -------------------------\n        else if (humidity > 70) {\n            box.style.background = \"#EF5350\";  // rot\n            box.style.color = \"#fff\";\n            box.innerHTML = \"🥵<br><div style='font-size:24px; color:white;'>too humid!</div>\";\n        }\n    });\n\n})(scope);\n</script>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 740,
+        "y": 680,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "0d01230b0d457fb6",
+        "type": "switch",
+        "z": "3c1a9d82e45b7067",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "gt",
+                "v": "70",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 710,
+        "y": 740,
+        "wires": [
+            [
+                "254206813d5a9219"
+            ]
+        ]
+    },
+    {
+        "id": "254206813d5a9219",
+        "type": "ui_toast",
+        "z": "3c1a9d82e45b7067",
+        "position": "top left",
+        "displayTime": "3",
+        "highlight": "",
+        "sendall": true,
+        "outputs": 0,
+        "ok": "OK",
+        "cancel": "",
+        "raw": false,
+        "className": "",
+        "topic": "too humid please ventilate",
+        "name": "Too humid please ventilate",
+        "x": 960,
+        "y": 740,
+        "wires": [],
+        "info": "Ventilating our rooms is important because it removes stale air, reduces indoor pollutants, and brings in fresh oxygen. This helps prevent mold, lowers humidity, improves concentration, and keeps the air healthier to breathe."
+    },
+    {
+        "id": "b467710c2029931f",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "10.10.2.127",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "26d17fa8e805fb2f",
+        "type": "ui_group",
+        "name": "",
+        "tab": "b2ed987818b88d7b",
+        "order": 1,
+        "disp": true,
+        "width": "12",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "b2ed987818b88d7b",
+        "type": "ui_tab",
+        "name": "Home",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    }
+]
