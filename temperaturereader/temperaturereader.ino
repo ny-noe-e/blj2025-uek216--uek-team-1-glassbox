@@ -51,15 +51,12 @@ void loop() {
   sensors_event_t humidity, temp;
   aht.getEvent(&humidity, &temp);
 
-
   float temperature = temp.temperature;
   std::string msg = std::to_string(temperature);
   
-
   float hum = humidity.relative_humidity;
   std::string teststring = std::to_string(hum);
   client.publish("zuerich/glasbox/RawHumidity", teststring);
-
 
   Serial.print(msg.c_str());
   Serial.print("      ");
@@ -72,6 +69,7 @@ void loop() {
     digitalWrite(A, LOW);
   }
   delay(1000);
+  displayString(msg.c_str());
 }
 
 void setup_sensor() {
